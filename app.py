@@ -83,7 +83,7 @@ def linear_regression():
         ax.plot(df[week_col], y, 'o', color='#64ffda', label='Actual', markersize=5)
         ax.plot(df[week_col], y_pred, '-', color='#1f6feb', linewidth=2.5, label='Prediction')
 
-        ax.set_title('NHS Waiting List Forecast', fontsize=18, weight='bold', color='white', pad=20)
+        ax.set_title('NHS Waiting List Graph with regression', fontsize=18, weight='bold', color='white', pad=20)
         ax.set_xlabel('Date', fontsize=12, labelpad=15)
         ax.set_ylabel('Number of Patients', fontsize=12, labelpad=15)
         ax.tick_params(axis='x', colors='white', rotation=45)
