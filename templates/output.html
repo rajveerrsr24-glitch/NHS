@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Linear Regression Results</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+      color: #ffffff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 50px 20px;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+    }
+
+    .container {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(20px);
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+      max-width: 900px;
+      width: 100%;
+    }
+
+    img {
+      width: 100%;
+      border-radius: 12px;
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+
+    .controls {
+      margin-top: 30px;
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    select {
+      padding: 12px 16px;
+      font-size: 1rem;
+      border-radius: 10px;
+      border: none;
+      background: rgba(255,255,255,0.08);
+      color: #ffffff;
+      cursor: pointer;
+      transition: 0.2s ease-in-out;
+    }
+
+    select:hover {
+      background: rgba(255,255,255,0.15);
+    }
+
+    .controls label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 600;
+    }
+
+    .controls > div {
+      flex: 1 1 200px;
+    }
+
+    #predictionOutput {
+      margin-top: 25px;
+      font-size: 1.4rem;
+      font-weight: bold;
+      color: #64ffda;
+      opacity: 0;
+      transition: opacity 0.4s ease-in-out;
+      text-align: center;
+    }
+
+    .btn {
+      margin-top: 40px;
+      display: inline-block;
+      padding: 14px 28px;
+      background-color: #1f6feb;
+      color: white;
+      font-weight: 600;
+      border-radius: 10px;
+      text-decoration: none;
+      transition: 0.2s ease-in-out;
+    }
+
+    .btn:hover {
+      background-color: #1e90ff;
+    }
+
+    .chatbot {
+      margin-top: 40px;
+      background: rgba(255,255,255,0.04);
+      border-radius: 15px;
+      padding: 20px;
+      box-shadow: 0 0 12px rgba(0,0,0,0.4);
+    }
+
+    .chatbot h2 {
+      margin-bottom: 15px;
+      color: #90e0ef;
+    }
+
+    .chat-window {
+      background: rgba(255,255,255,0.03);
+      padding: 15px;
+      border-radius: 10px;
+      max-height: 200px;
+      overflow-y: auto;
+      margin-bottom: 15px;
+    }
+
+    .msg {
+      margin-bottom: 10px;
+      font-size: 0.95rem;
+    }
+
+    .sender {
+      font-weight: bold;
+      margin-right: 6px;
+      color: #64ffda;
+    }
+
+    #chat-form {
+      display: flex;
+      gap: 10px;
+    }
+
+    #chat-input {
+      flex: 1;
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+      font-size: 0.95rem;
+      background-color: #eeeeee;
+      color: black;
+    }
+
+    #chat-form button {
+      padding: 10px 16px;
+      background-color: #1f6feb;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    #chat-form button:hover {
+      background-color: #1e90ff;
+    }
+
+    @media (max-width: 600px) {
+      .controls {
+        flex-direction: column;
+        align-items: center;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>📊 NHS Waiting List Predictor</h1>
+
+  <div class="container">
+    <img src="{{ plot_url }}" alt="Regression Plot">
+
+    <div class="controls">
+      <div>
+        <label for="year">Year:</label>
+        <select id="year" onchange="updatePrediction()">
+          <option value="" disabled selected>Select Year</option>
+          {% for y in range(2026, 2031) %}
+            <option value="{{ y }}">{{ y }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div>
+        <label for="month">Month:</label>
+        <select id="month" onchange="updatePrediction()">
+          <option value="" disabled selected>Select Month</option>
+          {% for i, m in [(1, "Jan"), (2, "Feb"), (3, "Mar"), (4, "Apr"), (5, "May"), (6, "Jun"),
+                          (7, "Jul"), (8, "Aug"), (9, "Sep"), (10, "Oct"), (11, "Nov"), (12, "Dec")] %}
+            <option value="{{ "%02d"|format(i) }}">{{ m }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <div id="predictionOutput"></div>
+
+    <a href="/" class="btn">⬆ Upload Another File</a>
+
+    <div class="chatbot">
+      <h2>🤖 NHS Chatbot</h2>
+      <div class="chat-window" id="chat-window"></div>
+      <form id="chat-form">
+          <input type="text" id="chat-input" placeholder="Try: growth rate, summary, or R value..." autocomplete="off" />
+        <button type="submit">Send</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const predictions = {{ predictions | tojson }};
+
+    function updatePrediction() {
+      const year = document.getElementById("year").value;
+      const month = document.getElementById("month").value;
+      const output = document.getElementById("predictionOutput");
+
+      if (year && month) {
+        const key = `${year}-${month}`;
+        const val = predictions[key];
+        if (val !== undefined) {
+          output.style.opacity = 0;
+          setTimeout(() => {
+            output.innerText = `📅 ${year}-${month} ➜ Predicted Waiting List: ${val.toLocaleString()}`;
+            output.style.opacity = 1;
+          }, 200);
+        } else {
+          output.innerText = "No prediction available.";
+          output.style.opacity = 1;
+        }
+      }
+    }
+
+    const chatWindow = document.getElementById('chat-window');
+    const chatForm = document.getElementById('chat-form');
+    const chatInput = document.getElementById('chat-input');
+
+    chatForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const msg = chatInput.value.trim();
+      if (!msg) return;
+      appendMessage("🧑", msg);
+      chatInput.value = "";
+
+      const res = await fetch("/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: msg })
+      });
+
+      const data = await res.json();
+      appendMessage("🤖", data.answer);
+    });
+
+    function appendMessage(sender, text) {
+      const msg = document.createElement("div");
+      msg.classList.add("msg");
+      msg.innerHTML = `<span class="sender">${sender}</span> ${text}`;
+      chatWindow.appendChild(msg);
+      chatWindow.scrollTop = chatWindow.scrollHeight;
+    }
+  </script>
+</body>
+</html>
